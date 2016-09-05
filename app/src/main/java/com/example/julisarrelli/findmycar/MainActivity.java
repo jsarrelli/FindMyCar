@@ -68,7 +68,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-      //  setSupportActionBar(toolbar);
+        //  setSupportActionBar(toolbar);
 
 
 
@@ -77,7 +77,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onMapReady(GoogleMap map) {
-                mMap=map;
+        mMap=map;
 
 
 
@@ -124,20 +124,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-
-
-    public void onLocationChanged(Location location) {
-
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(new LatLng(location.getLatitude(), location.getLongitude()))
-                .zoom(14)
-                .build();
-
-        if (mMap != null) {
-            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        }
-
-    }
 
 
 

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Find My Car MOTHERFUCKER</string>
+    <string name="app_name">Find My Car</string>
     <string name="title_activity_mapa">Mapa</string>
     <string name="title_activity_map_location">MapLocationActivity</string>
     <string name="title_activity_maps">Map</string>
