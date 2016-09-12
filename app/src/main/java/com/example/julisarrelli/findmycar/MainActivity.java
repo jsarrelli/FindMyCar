@@ -100,26 +100,48 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         mMap.setMyLocationEnabled(true);
-        map.animateCamera(CameraUpdateFactory.zoomIn());
+       // mMap.animateCamera(CameraUpdateFactory.zoomIn());
 
 
 
         //obtiene la location y centra la camara en la misma
 
 
-       LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+    //   LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        LocationManager  locationManager= (LocationManager)getApplicationContext().getSystemService(LOCATION_SERVICE);
+
 
        Criteria criteria = new Criteria();
        String provider = locationManager.getBestProvider(criteria, true);
-        Location location = locationManager.getLastKnownLocation(provider);
+
+            // este anda mal, es mejor el network provider que es el unico que anda
+//        Location location = locationManager.getLastKnownLocation(provider);
+
+        Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
 
         if(location!=null){
-            double latitude = location.getLatitude();
-            double longitud = location.getLongitude();
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude,longitud)));
-            mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+
+            //esta forma centra la camara pero sin animacion
+//            double latitude = location.getLatitude();
+//            double longitud = location.getLongitude();
+//            mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+//            mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude,longitud)));
+
+
+            //esta forma centra la camara con animacion
+            LatLng target = new LatLng(location.getLatitude(), location.getLongitude());
+        CameraPosition position = this.mMap.getCameraPosition();
+
+        CameraPosition.Builder builder = new CameraPosition.Builder();
+        builder.zoom(15);
+        builder.target(target);
+
+        this.mMap.animateCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
+
 
         }
+
 //
 //        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude,longitud)));
 //        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
@@ -128,18 +150,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
-//        if(location!=null){
-//            onLocationChanged(location);
-//        }
 
-//        LatLng target = new LatLng(location.getLatitude(), location.getLongitude());
-//        CameraPosition position = this.mMap.getCameraPosition();
-
-////        CameraPosition.Builder builder = new CameraPosition.Builder();
-////        builder.zoom(15);
-////        builder.target(target);
-////
-////        this.mMap.animateCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
 ////        mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("You are here!").snippet("Consider yourself located"));
 ////
 ////
@@ -149,38 +160,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     }
-
-
-
-
-
-
-    public void onLocationChanged(Location location) {
-
-
-
-        // Getting latitude of the current location
-        double latitude = location.getLatitude();
-
-        // Getting longitude of the current location
-        double longitude = location.getLongitude();
-
-        // Creating a LatLng object for the current location
-        LatLng latLng = new LatLng(latitude, longitude);
-
-        // Showing the current location in Google Map
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-
-        // Zoom in the Google Map
-      mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
-
-
-
-
-
-
-    }
-
 
 
 
