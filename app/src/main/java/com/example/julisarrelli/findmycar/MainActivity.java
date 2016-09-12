@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -56,13 +57,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
 
 
-    //esto es para centrar la camara en la ubicacion
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_activity);
-
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -70,7 +71,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
 
-        Log.v("ipm","termino onCreate");
+
+
+
 
     }
 
@@ -78,8 +81,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap map) {
         mMap=map;
-
-
 
 
         LatLng sydney = new LatLng(37.1833, 67.3667);
@@ -97,35 +98,86 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             return;
         }
 
+
         mMap.setMyLocationEnabled(true);
         map.animateCamera(CameraUpdateFactory.zoomIn());
 
 
 
         //obtiene la location y centra la camara en la misma
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        Criteria criteria = new Criteria();
-        String provider = locationManager.getBestProvider(criteria, true);
+
+
+       LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+       Criteria criteria = new Criteria();
+       String provider = locationManager.getBestProvider(criteria, true);
         Location location = locationManager.getLastKnownLocation(provider);
 
-        LatLng target = new LatLng(location.getLatitude(), location.getLongitude());
-        CameraPosition position = this.mMap.getCameraPosition();
+        // Getting latitude of the current location
+        double latitude = location.getLatitude();
 
-        CameraPosition.Builder builder = new CameraPosition.Builder();
-        builder.zoom(15);
-        builder.target(target);
+        // Getting longitude of the current location
+        double longitud = location.getLongitude();
 
-        this.mMap.animateCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
-        mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("You are here!").snippet("Consider yourself located"));
-
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude,longitud)));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
 
 
-        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+
+
+
+//        if(location!=null){
+//            onLocationChanged(location);
+//        }
+
+//        LatLng target = new LatLng(location.getLatitude(), location.getLongitude());
+//        CameraPosition position = this.mMap.getCameraPosition();
+
+////        CameraPosition.Builder builder = new CameraPosition.Builder();
+////        builder.zoom(15);
+////        builder.target(target);
+////
+////        this.mMap.animateCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
+////        mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("You are here!").snippet("Consider yourself located"));
+////
+////
+////
+////        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+
+
+
     }
 
 
 
 
+
+
+    public void onLocationChanged(Location location) {
+
+
+
+        // Getting latitude of the current location
+        double latitude = location.getLatitude();
+
+        // Getting longitude of the current location
+        double longitude = location.getLongitude();
+
+        // Creating a LatLng object for the current location
+        LatLng latLng = new LatLng(latitude, longitude);
+
+        // Showing the current location in Google Map
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+
+        // Zoom in the Google Map
+      mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+
+
+
+
+
+
+    }
 
 
 
