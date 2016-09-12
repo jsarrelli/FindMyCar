@@ -113,14 +113,16 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
        String provider = locationManager.getBestProvider(criteria, true);
         Location location = locationManager.getLastKnownLocation(provider);
 
-        // Getting latitude of the current location
-        double latitude = location.getLatitude();
+        if(location!=null){
+            double latitude = location.getLatitude();
+            double longitud = location.getLongitude();
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude,longitud)));
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
 
-        // Getting longitude of the current location
-        double longitud = location.getLongitude();
-
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude,longitud)));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+        }
+//
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude,longitud)));
+//        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
 
 
 
