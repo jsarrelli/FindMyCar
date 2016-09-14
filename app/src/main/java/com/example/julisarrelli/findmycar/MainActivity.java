@@ -3,6 +3,8 @@ package com.example.julisarrelli.findmycar;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Handler;
 import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
@@ -53,6 +55,11 @@ import android.util.Log;
 import android.view.View;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.Toolbar;
+import android.widget.TextView;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -62,6 +69,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     private GoogleMap mMap;
     private Location location;
+    private TextView direccion1=null;
+    private TextView direccion2=null;
+
+
+
 
 
     @Override
@@ -133,7 +145,15 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
                 if (location != null){
 
-                    mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Aca dejaste el auto!"));
+                    mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Aca dejaste el auto!").snippet(getAdress(location.getLatitude(),location.getLongitude())));
+
+                    direccion2=(TextView)findViewById(R.id.direccion2);
+                   direccion2.setText(getAdress(location.getLatitude(),location.getLongitude()));
+
+                    direccion1=(TextView)findViewById(R.id.direccion1);
+                    direccion1.setText(R.string.direccion1);
+
+
                 }
 
             }
@@ -193,7 +213,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         CameraPosition position = this.mMap.getCameraPosition();
 
         CameraPosition.Builder builder = new CameraPosition.Builder();
-        builder.zoom(15);
+        builder.zoom(17);
         builder.target(target);
 
         this.mMap.animateCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
@@ -234,5 +254,23 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         alert.show();
     }
 
+
+    public String getAdress(double latitude,double longitude)
+    {
+        Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+
+        List<Address> addresses  = null;
+        try {
+            addresses = geocoder.getFromLocation(latitude,longitude, 1);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        String direccion = addresses.get(0).getAddressLine(0);
+
+    return direccion;
+
+    }
 
 }
