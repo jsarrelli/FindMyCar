@@ -1,10 +1,15 @@
 package com.example.julisarrelli.findmycar;
 
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Handler;
+import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 
 
@@ -66,10 +71,17 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_activity);
 
+
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+
+        checkGPSenabled();
+
+
 
 
 
@@ -77,14 +89,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
+
+
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
 
 
-        LatLng sydney = new LatLng(37.1833, 67.3667);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Buenos Aires"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -101,8 +112,14 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setMyLocationEnabled(true);
 
 
+
+
+
         //se instancia la location
         location=getLocation();
+
+
+
 
         //centra la camara
         if (location != null) {centrarCamara(mMap);}
@@ -112,10 +129,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View view) {
 
+                location=getLocation();
 
+                if (location != null){
 
-                mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Aca dejaste el auto!").snippet("Consider yourself located"));
-
+                    mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Aca dejaste el auto!"));
+                }
 
             }
         });
@@ -142,6 +161,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
             return null;
         }
+
+
         //return locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         return locationManager.getLastKnownLocation(provider);
     }
@@ -158,6 +179,16 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         //esta forma centra la camara con animacion
+
+
+
+
+        location=getLocation();
+
+
+
+        if(location!=null){
+
         LatLng target = new LatLng(location.getLatitude(), location.getLongitude());
         CameraPosition position = this.mMap.getCameraPosition();
 
@@ -167,7 +198,41 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         this.mMap.animateCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
     }
+    }
 
+
+
+    private void checkGPSenabled() {
+
+        LocationManager mlocManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        boolean enabled = mlocManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+
+        if(!enabled) {
+            showDialogGPS();
+        }
+
+    }
+
+    private void showDialogGPS() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(false);
+        builder.setTitle("Activar GPS");
+        builder.setMessage("Para que la app funcione correctamente, debes activar el GPS");
+        builder.setInverseBackgroundForced(true);
+        builder.setPositiveButton("Activar", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                startActivity(
+                        new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+            }
+        });
+        builder.setNegativeButton("Ignorar", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
 
 
 }
