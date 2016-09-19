@@ -1,19 +1,19 @@
 package com.example.julisarrelli.findmycar;
 
+import android.app.ActionBar;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.location.Address;
 import android.location.Geocoder;
-import android.os.Handler;
-import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 
 
 import android.os.Bundle;
@@ -23,46 +23,30 @@ import com.akexorcist.googledirection.GoogleDirection;
 import com.akexorcist.googledirection.constant.TransportMode;
 import com.akexorcist.googledirection.model.Direction;
 import com.akexorcist.googledirection.util.DirectionConverter;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
 import android.content.Context;
 import android.location.Location;
 import android.location.Criteria;
-import android.location.LocationListener;
 import android.location.LocationManager;
 
-import com.google.android.gms.common.GooglePlayServicesUtil;
-
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap.CancelableCallback;
-import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.CircleOptions;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
+import com.hanks.htextview.HTextView;
+import com.hanks.htextview.HTextViewType;
 
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -70,10 +54,12 @@ import java.util.List;
 import java.util.Locale;
 
 
+
+
 /**
  * This shows how to create a simple activity with a map and a marker on the map.
  */
-public class MainActivity extends FragmentActivity implements OnMapReadyCallback, View.OnClickListener, DirectionCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, DirectionCallback {
 
     private GoogleMap mMap;
     private Location location;
@@ -92,12 +78,19 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
-    @Override
+
     protected void onCreate(Bundle savedInstanceState) {
 
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_activity);
+
+
+
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(myToolbar);
+
+
 
 // Getting Google Play availability status
         int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getBaseContext());
@@ -113,9 +106,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         navegar.setOnClickListener(this);
 
 
+    }
 
-
-
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.map_activity, menu);
+        return true;
     }
 
 
@@ -180,7 +176,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
                 if(location==null) {
 
-                    Snackbar.make(navegar, "No anda el GPS del pelotudo de cesar", Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(navegar, "No funciona el GPS", Snackbar.LENGTH_SHORT).show();
                 }
 
 
@@ -236,8 +232,14 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
 
-        return locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-       // return locationManager.getLastKnownLocation(provider);
+        if(locationManager.getLastKnownLocation(provider)==null)
+        {
+            return locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+        }
+
+
+
+        return locationManager.getLastKnownLocation(provider);
     }
 
 
@@ -334,7 +336,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         LatLng origin= new LatLng(location.getLatitude(),location.getLongitude());
-        Snackbar.make(navegar, "Solicitando Ruta...", Snackbar.LENGTH_SHORT).show();
+        Toast toast = Toast.makeText(getApplicationContext(), "Calculando ruta..." , Toast.LENGTH_SHORT);
+        toast.show();
         GoogleDirection.withServerKey("AIzaSyDj6bsaW6DYgSYfertBx16fug2u0W6Pstc")
                 .from(origin)
                 .to(destination)
@@ -349,7 +352,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
             ArrayList<LatLng>  directionPositionList = direction.getRouteList().get(0).getLegList().get(0).getDirectionPoint();
-            mMap.addPolyline(DirectionConverter.createPolyline(this, directionPositionList, 5, Color.GREEN));
+            mMap.addPolyline(DirectionConverter.createPolyline(this, directionPositionList, 5, Color.BLUE));
 
 
 
@@ -378,5 +381,31 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         direccion1=(TextView)findViewById(R.id.direccion1);
         direccion1.setText(R.string.direccion1);
+
+
+
+
+        Toast toast = Toast.makeText(getApplicationContext(), "Posicion Guardada" , Toast.LENGTH_SHORT);
+        toast.show();
+    }
+
+
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+
+
+            case R.id.action_locate:
+                // User chose the "Favorite" action, mark the current item
+                // as a favorite...
+                centrarCamara(mMap);
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
+        }
     }
 }

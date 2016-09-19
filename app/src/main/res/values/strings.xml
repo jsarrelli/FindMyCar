@@ -8,4 +8,10 @@
     <string name="gps_network_not_enabled" />
     <string name="open_location_settings" />
     <string name="Cancel" />
+
+    <string name="menu_settings">Opciones</string>
+    <string name="menu_location">Ubicacion</string>
+
+
+
 </resources>
