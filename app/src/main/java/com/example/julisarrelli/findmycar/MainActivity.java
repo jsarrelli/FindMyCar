@@ -3,6 +3,7 @@ package com.example.julisarrelli.findmycar;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Handler;
@@ -17,6 +18,11 @@ import android.support.v7.app.AppCompatActivity;
 
 import android.os.Bundle;
 
+import com.akexorcist.googledirection.DirectionCallback;
+import com.akexorcist.googledirection.GoogleDirection;
+import com.akexorcist.googledirection.constant.TransportMode;
+import com.akexorcist.googledirection.model.Direction;
+import com.akexorcist.googledirection.util.DirectionConverter;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -49,6 +55,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -58,6 +65,7 @@ import android.support.v7.widget.Toolbar;
 import android.widget.TextView;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -65,12 +73,20 @@ import java.util.Locale;
 /**
  * This shows how to create a simple activity with a map and a marker on the map.
  */
-public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MainActivity extends FragmentActivity implements OnMapReadyCallback, View.OnClickListener, DirectionCallback {
 
     private GoogleMap mMap;
     private Location location;
     private TextView direccion1=null;
     private TextView direccion2=null;
+    private FloatingActionButton navegar;
+    private LatLng origin=null;
+    private LatLng destination=null;
+    private double latitudMarker,longitudMarker;
+
+
+
+
 
 
 
@@ -83,16 +99,18 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_activity);
 
+// Getting Google Play availability status
+        int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getBaseContext());
 
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
 
         checkGPSenabled();
-
+        navegar = (FloatingActionButton) findViewById(R.id.walk);
+        navegar.setOnClickListener(this);
 
 
 
@@ -107,9 +125,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap map) {
         mMap = map;
 
-        map.addMarker(new MarkerOptions()
-                .position(new LatLng(-34.59085915929207, -58.503838777542114))
-                .title("Destino"));
+      //  map.addMarker(new MarkerOptions().position(new LatLng(-34.59085915929207, -58.503838777542114)).title("Destino"));
+
+
 
 
 
@@ -127,18 +145,14 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         //activamos la location
         mMap.setMyLocationEnabled(true);
 
-
-
-
-
         //se instancia la location
         location=getLocation();
 
-
-
-
         //centra la camara
         if (location != null) {centrarCamara(mMap);}
+
+
+
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -149,16 +163,51 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
                 if (location != null){
 
+                    mMap.clear();
+
+                    latitudMarker=location.getLatitude();
+                    longitudMarker= location.getLongitude();
+
+
                     mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Aca dejaste el auto!").snippet(getAdress(location.getLatitude(),location.getLongitude())));
 
-                    direccion2=(TextView)findViewById(R.id.direccion2);
-                   direccion2.setText(getAdress(location.getLatitude(),location.getLongitude()));
+                    setTexto();
 
-                    direccion1=(TextView)findViewById(R.id.direccion1);
-                    direccion1.setText(R.string.direccion1);
+                    destination=new LatLng(location.getLatitude(),location.getLongitude());
 
 
                 }
+
+                if(location==null) {
+
+                    Snackbar.make(navegar, "No anda el GPS del pelotudo de cesar", Snackbar.LENGTH_SHORT).show();
+                }
+
+
+            }
+        });
+
+
+
+        navegar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if(destination!=null) {
+
+                    mMap.clear();
+
+                    mMap.addMarker(new MarkerOptions().position(new LatLng(latitudMarker, longitudMarker)).title("Aca dejaste el auto!").snippet(getAdress(location.getLatitude(),location.getLongitude())));
+
+                    requestDirection();
+
+                    return;
+                }
+
+
+                    Snackbar.make(navegar, "No se encuentra un destino", Snackbar.LENGTH_SHORT).show();
+
+
 
             }
         });
@@ -187,8 +236,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
 
-        //return locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-        return locationManager.getLastKnownLocation(provider);
+        return locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+       // return locationManager.getLastKnownLocation(provider);
     }
 
 
@@ -277,4 +326,57 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+
+    public void requestDirection() {
+
+
+        location=getLocation();
+
+
+        LatLng origin= new LatLng(location.getLatitude(),location.getLongitude());
+        Snackbar.make(navegar, "Solicitando Ruta...", Snackbar.LENGTH_SHORT).show();
+        GoogleDirection.withServerKey("AIzaSyDj6bsaW6DYgSYfertBx16fug2u0W6Pstc")
+                .from(origin)
+                .to(destination)
+                .transportMode(TransportMode.WALKING)
+                .execute(this);
+    }
+
+    public void onDirectionSuccess(Direction direction, String rawBody) {
+
+
+        if (direction.isOK()) {
+
+
+            ArrayList<LatLng>  directionPositionList = direction.getRouteList().get(0).getLegList().get(0).getDirectionPoint();
+            mMap.addPolyline(DirectionConverter.createPolyline(this, directionPositionList, 5, Color.GREEN));
+
+
+
+
+        }
+    }
+
+    @Override
+    public void onDirectionFailure(Throwable t) {
+        Snackbar.make(navegar, t.getMessage(), Snackbar.LENGTH_SHORT).show();
+    }
+
+
+    @Override
+    public void onClick(View view) {
+
+
+
+    }
+
+
+    public void setTexto()
+    {
+        direccion2=(TextView)findViewById(R.id.direccion2);
+        direccion2.setText(getAdress(location.getLatitude(),location.getLongitude()));
+
+        direccion1=(TextView)findViewById(R.id.direccion1);
+        direccion1.setText(R.string.direccion1);
+    }
 }
