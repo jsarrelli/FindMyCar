@@ -5,17 +5,32 @@
 
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/drawer_layout"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-
     android:weightSum="1"
     android:focusable="true"
     android:orientation="vertical"
-    android:gravity="top">
+    android:gravity="top"
+    android:fitsSystemWindows="true"
+    tools:openDrawer="start"
+    tools:context=".MainActivity">
 
 
+       <FrameLayout
+           android:id="@+id/content_frame"
+           android:layout_width="match_parent"
+           android:layout_height="match_parent"/>
 
-
+       <ListView
+           android:id="@+id/left_drawer"
+           android:layout_width="240dp"
+           android:layout_height="match_parent"
+           android:layout_gravity="start"
+           android:choiceMode="singleChoice"
+           android:divider="@android:color/transparent"
+           android:dividerHeight="0dp"
+           android:background="#111"/>
 
 
        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
@@ -93,6 +108,10 @@
            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
            android:layout_alignRight="@+id/walk"
            android:layout_alignEnd="@+id/walk" />
+
+
+
+
 
 
 

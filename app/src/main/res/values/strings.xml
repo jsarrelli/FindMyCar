@@ -11,7 +11,12 @@
 
     <string name="menu_settings">Opciones</string>
     <string name="menu_location">Ubicacion</string>
+    <string name="title_activity_main2">Main2Activity</string>
 
+    <string name="drawer_open">Open</string>
+    <string name="drawer_close">Close</string>
+
+    <string name="action_settings">Settings</string>
 
 
 </resources>

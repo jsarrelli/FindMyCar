@@ -9,8 +9,11 @@ import android.graphics.Typeface;
 import android.location.Address;
 import android.location.Geocoder;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.view.GravityCompat;
+
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
@@ -41,10 +44,12 @@ import com.hanks.htextview.HTextView;
 import com.hanks.htextview.HTextViewType;
 
 import android.support.v7.app.AppCompatActivity;
+
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -59,7 +64,8 @@ import java.util.Locale;
 /**
  * This shows how to create a simple activity with a map and a marker on the map.
  */
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, DirectionCallback {
+public class MainActivity extends AppCompatActivity
+        implements OnMapReadyCallback, View.OnClickListener, DirectionCallback{
 
     private GoogleMap mMap;
     private Location location;
@@ -69,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LatLng origin=null;
     private LatLng destination=null;
     private double latitudMarker,longitudMarker;
+    private Toolbar toolbar;
 
 
 
@@ -84,11 +91,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_activity);
-
-
-
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
-        setSupportActionBar(myToolbar);
+     toolbar = (Toolbar) findViewById(R.id.my_toolbar);
+        setSupportActionBar(toolbar);
 
 
 
@@ -107,6 +111,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     }
+
+
 
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -408,4 +414,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }
     }
+
+
+
 }
