@@ -1,9 +1,34 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_refresh"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/refresh"
+        android:title="Refresh"/>
+
+    <item
+        android:id="@+id/action_adress"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/adress"
+        android:title="Adress"/>
+
     <item android:id="@+id/action_locate"
-        android:icon="@drawable/tipito3"
-        android:title="@string/menu_location"
+    android:icon="@drawable/tipito3"
+    android:title="@string/menu_location"
+    app:showAsAction="always"  />
+
+    <item android:id="@+id/action_AutomaticMode"
+
+        android:title="@string/automaticMode"
         app:showAsAction="always"  />
 
+
+
+    <item
+        android:id="@+id/action_settings"
+
+        android:title="@string/settings">
+    </item>
 
 </menu>
