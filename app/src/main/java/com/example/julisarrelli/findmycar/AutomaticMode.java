@@ -31,7 +31,7 @@ public class AutomaticMode extends BroadcastReceiver {
 
     public AutomaticMode() {
 
-        
+
 
 
         if (mBluetoothAdapter == null) {
@@ -59,14 +59,18 @@ public class AutomaticMode extends BroadcastReceiver {
             //Device is about to disconnect
         } else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
             Log.v("tag", "Disconnected to " + device.getName());
-
-
-           mainActivity.saveLocation();
-
+    /*
+    lo que no tengo ni idea es como llamar a este metodo (SaveLocation) desde aca sin que me tire un nuller pointer excepcion. Lo
+  lo que tambien me indiga es que el el broadcastReciber anda sin necesidad de que yo instancie esta clase
+   y como si no fuera lo suficientemente cornudo, cuando conecta, aparece como que al segundo se desconta, por ende se vuelve a romper
+            */
+            mainActivity.saveLocation();
 
         }
 
     }
+
+
 
     private void showAvailableDevices() {
 
