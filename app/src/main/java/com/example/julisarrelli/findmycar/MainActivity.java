@@ -3,6 +3,9 @@ package com.example.julisarrelli.findmycar;
 import android.*;
 import android.Manifest;
 import android.app.ActionBar;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -48,11 +51,13 @@ import android.location.Criteria;
 import android.location.LocationManager;
 
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.StreetViewPanoramaCamera;
 
 
 import android.support.v7.app.AppCompatActivity;
 
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -64,6 +69,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 
 /**
@@ -82,11 +88,16 @@ public class MainActivity extends AppCompatActivity
     private double latitudMarker, longitudMarker;
     private Toolbar toolbar;
     private boolean refreshVisible = false;
+    private AutomaticMode automaticMode;
+
+
+    private Set<String>array;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     private GoogleApiClient client;
+
 
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +107,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.map_activity);
         toolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
+        Log.v("tag","empezo");
 
 ///esto es para los permission para el cornudo del marshamallow 6.0
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -177,34 +189,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
 
-                location = getLocation();
-
-                if (location != null) {
-
-                    mMap.clear();
-
-                    latitudMarker = location.getLatitude();
-                    longitudMarker = location.getLongitude();
-
-
-                    mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Aca dejaste el auto!").snippet(getAdress(location.getLatitude(), location.getLongitude())));
-
-                   // setTexto();// esto muestra la direccion del auto en el medio de la pantalla
-
-                    destination = new LatLng(location.getLatitude(), location.getLongitude());
-
-                    navegar.show();
-                    refreshVisible = false;
-                    invalidateOptionsMenu();
-
-
-                }
-
-                if (location == null) {
-
-                    Snackbar.make(navegar, "No funciona el GPS", Snackbar.LENGTH_SHORT).show();
-                }
-
+                saveLocation();
 
             }
         });
@@ -243,6 +228,40 @@ public class MainActivity extends AppCompatActivity
 ////
 ////        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
 
+
+    }
+
+    public void saveLocation() {
+
+        Log.v("tag","entro al saveLocation");
+
+        location = getLocation();
+
+        if (location != null) {
+
+            mMap.clear();
+
+            latitudMarker = location.getLatitude();
+            longitudMarker = location.getLongitude();
+
+
+            mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Aca dejaste el auto!").snippet(getAdress(location.getLatitude(), location.getLongitude())));
+
+            // setTexto();// esto muestra la direccion del auto en el medio de la pantalla
+
+            destination = new LatLng(location.getLatitude(), location.getLongitude());
+
+            navegar.show();
+            refreshVisible = false;
+            invalidateOptionsMenu();
+
+
+        }
+
+        if (location == null) {
+
+            Snackbar.make(navegar, "No funciona el GPS", Snackbar.LENGTH_SHORT).show();
+        }
 
     }
 
@@ -422,7 +441,6 @@ public class MainActivity extends AppCompatActivity
         direccion2 = (TextView) findViewById(R.id.direccion2);
         direccion2.setText(getAdress(location.getLatitude(), location.getLongitude()));
 
-        alertView(getAdress(location.getLatitude(), location.getLongitude()));
 
         direccion1 = (TextView) findViewById(R.id.direccion1);
         direccion1.setText(R.string.direccion1);
@@ -432,12 +450,12 @@ public class MainActivity extends AppCompatActivity
         toast.show();
     }
 
-    private void alertView(String message) {
+    public void alertView(String message,String title) {
         AlertDialog.Builder dialog = new AlertDialog.Builder(this);
 
-        dialog.setTitle("Direccion")
+        dialog.setTitle(title)
                 //.setIcon(R.drawable.ic_launcher)
-                .setMessage("Tu auto se encuntra en: "+message)
+                .setMessage(message)
 //  .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 //      public void onClick(DialogInterface dialoginterface, int i) {
 //          dialoginterface.cancel();
@@ -447,6 +465,8 @@ public class MainActivity extends AppCompatActivity
                     }
                 }).show();
     }
+
+
 
 
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -465,7 +485,36 @@ public class MainActivity extends AppCompatActivity
                 return true;
 
             case R.id.action_adress:
-                alertView("Tu auto se encuntra en: "+getAdress(location.getLatitude(), location.getLongitude()));
+                alertView("Tu auto se encuntra en: "+getAdress(location.getLatitude(), location.getLongitude()),"Direccion");
+
+
+                return true;
+
+            case R.id.action_AutomaticMode:
+
+
+                AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+
+                dialog.setTitle("Turn on Automatic Mode")
+                        //.setIcon(R.drawable.ic_launcher)
+                        .setMessage("This mode requires to use your bluetooth, are you agree?")
+                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialoginterface, int i) {
+                                return;
+                            }})
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialoginterface, int i) {
+
+
+
+
+                               automaticMode = new AutomaticMode();
+
+
+                            }
+                        }).show();
+
+
 
 
                 return true;
@@ -517,4 +566,8 @@ public class MainActivity extends AppCompatActivity
         AppIndex.AppIndexApi.end(client, viewAction);
         client.disconnect();
     }
+
+
+
+
 }
