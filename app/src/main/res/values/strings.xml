@@ -18,7 +18,9 @@
 
     <string name="settings">Settings</string>
 
-    <string name="automaticMode">Automatic Mode</string>
+    <string name="clear">Clear</string>
 
+    <string name="turnOnAutomaticMode">Start Automatic Mode</string>
+    <string name="turnOffAutomaticMode">Stop Automatic Mode</string>
 
 </resources>

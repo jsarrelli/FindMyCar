@@ -1,29 +1,22 @@
 package com.example.julisarrelli.findmycar;
 
-import android.*;
 import android.Manifest;
-import android.app.ActionBar;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
 import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.GravityCompat;
 
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 
 
@@ -51,7 +44,6 @@ import android.location.Criteria;
 import android.location.LocationManager;
 
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.StreetViewPanoramaCamera;
 
 
 import android.support.v7.app.AppCompatActivity;
@@ -61,7 +53,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -69,29 +60,28 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 
-/**
- * This shows how to create a simple activity with a map and a marker on the map.
- */
 public class MainActivity extends AppCompatActivity
         implements OnMapReadyCallback, View.OnClickListener, DirectionCallback {
 
     private GoogleMap mMap;
     private Location location;
-    private TextView direccion1 = null;
-    private TextView direccion2 = null;
     private FloatingActionButton navegar;
     private LatLng origin = null;
     private LatLng destination = null;
     private double latitudMarker, longitudMarker;
     private Toolbar toolbar;
     private boolean refreshVisible = false;
-    private AutomaticMode automaticMode;
+    private boolean AddressVisible = false;
+    private boolean clearVisible=false;
+    private boolean AutomaticModeOn=false;
+    private IntentFilter intentFilter;
+    private  BroadcastReceiver receiver;
 
 
-    private Set<String>array;
+
+
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -100,14 +90,23 @@ public class MainActivity extends AppCompatActivity
 
 
 
+
+
+
+
+
     protected void onCreate(Bundle savedInstanceState) {
+
 
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map_activity);
         toolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
-        Log.v("tag","empezo");
+
+
+
+
 
 ///esto es para los permission para el cornudo del marshamallow 6.0
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -138,11 +137,51 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+    private void instanciarReceiver()
+    {
+         receiver=new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+
+
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
+                if (BluetoothDevice.ACTION_ACL_CONNECTED.equals(action)) {
+
+//            cuando el dispositivo se conecta por alguna razon se conecta,desconecta y se vuelve a conectar
+//            y eso hace que cuando se desconecte entre al SaveLocation(), por eso tenemos que anularlo
+
+                    mMap.clear();
+                    refreshVisible = false;
+                    AddressVisible =false;
+                    clearVisible=false;
+                    navegar.hide();
+                    invalidateOptionsMenu();
+
+
+                }
+                else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+
+                    saveLocation();
+
+                }
+
+            }
+        };
+
+
+        intentFilter = new IntentFilter();
+        intentFilter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
+        intentFilter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+
+        registerReceiver(receiver, intentFilter);
+    }
+
+
+
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.map_activity, menu);
-
-
         return true;
     }
 
@@ -150,6 +189,16 @@ public class MainActivity extends AppCompatActivity
         super.onPrepareOptionsMenu(menu);
         if (refreshVisible) menu.findItem(R.id.action_refresh).setVisible(true);
         else menu.findItem(R.id.action_refresh).setVisible(false);
+
+        if(AddressVisible)menu.findItem(R.id.action_adress).setVisible(true);
+        else menu.findItem(R.id.action_adress).setVisible(false);
+
+        if(clearVisible)menu.findItem(R.id.action_clear).setVisible(true);
+        else menu.findItem(R.id.action_clear).setVisible(false);
+
+        if(AutomaticModeOn)menu.findItem(R.id.action_AutomaticMode).setTitle(R.string.turnOffAutomaticMode);
+        else menu.findItem(R.id.action_AutomaticMode).setTitle(R.string.turnOnAutomaticMode);
+
         return true;
     }
 
@@ -158,17 +207,11 @@ public class MainActivity extends AppCompatActivity
     public void onMapReady(GoogleMap map) {
         mMap = map;
 
-        //  map.addMarker(new MarkerOptions().position(new LatLng(-34.59085915929207, -58.503838777542114)).title("Destino"));
+
 
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing pe rmissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return;
         }
 
@@ -180,8 +223,12 @@ public class MainActivity extends AppCompatActivity
 
         //centra la camara
         if (location != null) {
-            centrarCamara(mMap);
+            centrarCamara(mMap,location.getLatitude(),location.getLongitude());
         }
+
+
+
+
 
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -222,19 +269,10 @@ public class MainActivity extends AppCompatActivity
         });
 
 
-////        mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("You are here!").snippet("Consider yourself located"));
-////
-////
-////
-////        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
-
 
     }
 
     public void saveLocation() {
-
-        Log.v("tag","entro al saveLocation");
-
         location = getLocation();
 
         if (location != null) {
@@ -245,16 +283,17 @@ public class MainActivity extends AppCompatActivity
             longitudMarker = location.getLongitude();
 
 
-            mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Aca dejaste el auto!").snippet(getAdress(location.getLatitude(), location.getLongitude())));
 
-            // setTexto();// esto muestra la direccion del auto en el medio de la pantalla
+
+            mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Aca dejaste el auto!").snippet(getAdress(location.getLatitude(), location.getLongitude())));
 
             destination = new LatLng(location.getLatitude(), location.getLongitude());
 
             navegar.show();
             refreshVisible = false;
+            AddressVisible =true;
+            clearVisible=true;
             invalidateOptionsMenu();
-
 
         }
 
@@ -264,6 +303,7 @@ public class MainActivity extends AppCompatActivity
         }
 
     }
+
 
     public void DrawRoute() {
         if (destination != null) {
@@ -300,7 +340,7 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    public void centrarCamara(GoogleMap mMap) {
+    public void centrarCamara(GoogleMap mMap,double latitud,double longitud) {
 
         //esta forma centra la camara pero sin animacion
 //            double latitude = location.getLatitude();
@@ -311,13 +351,9 @@ public class MainActivity extends AppCompatActivity
 
         //esta forma centra la camara con animacion
 
-
-        location = getLocation();
-
-
         if (location != null) {
 
-            LatLng target = new LatLng(location.getLatitude(), location.getLongitude());
+            LatLng target = new LatLng(latitud, longitud);
             CameraPosition position = this.mMap.getCameraPosition();
 
             CameraPosition.Builder builder = new CameraPosition.Builder();
@@ -334,7 +370,7 @@ public class MainActivity extends AppCompatActivity
             case 1:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     location = getLocation();
-                    centrarCamara(mMap);
+                    centrarCamara(mMap,location.getLatitude(),location.getLongitude());
                 } else {
                     Toast.makeText(this, "Permitilo papi, no seas goma!", Toast.LENGTH_SHORT).show();
                 }
@@ -377,7 +413,7 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    public String getAdress(double latitude, double longitude) {
+    public String  getAdress(double latitude, double longitude) {
         Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
 
         List<Address> addresses = null;
@@ -437,18 +473,7 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    public void setTexto() {
-        direccion2 = (TextView) findViewById(R.id.direccion2);
-        direccion2.setText(getAdress(location.getLatitude(), location.getLongitude()));
 
-
-        direccion1 = (TextView) findViewById(R.id.direccion1);
-        direccion1.setText(R.string.direccion1);
-
-
-        Toast toast = Toast.makeText(getApplicationContext(), "Posicion Guardada", Toast.LENGTH_SHORT);
-        toast.show();
-    }
 
     public void alertView(String message,String title) {
         AlertDialog.Builder dialog = new AlertDialog.Builder(this);
@@ -474,8 +499,8 @@ public class MainActivity extends AppCompatActivity
 
 
             case R.id.action_locate:
-
-                centrarCamara(mMap);
+                location=getLocation();
+                centrarCamara(mMap,location.getLatitude(),location.getLongitude());
                 return true;
 
             case R.id.action_refresh:
@@ -485,36 +510,75 @@ public class MainActivity extends AppCompatActivity
                 return true;
 
             case R.id.action_adress:
-                alertView("Tu auto se encuntra en: "+getAdress(location.getLatitude(), location.getLongitude()),"Direccion");
+                alertView("Tu auto se encuntra en: "+getAdress(latitudMarker, longitudMarker),"Direccion");
+                location=getLocation();
+                centrarCamara(mMap,location.getLatitude(),location.getLongitude());
 
 
                 return true;
 
+            case R.id.action_clear:
+                mMap.clear();
+                refreshVisible = false;
+                AddressVisible =false;
+                clearVisible=false;
+                navegar.hide();
+                invalidateOptionsMenu();
+                return true;
+
             case R.id.action_AutomaticMode:
 
+                if(!AutomaticModeOn) {
+                    AlertDialog.Builder dialog = new AlertDialog.Builder(this);
 
-                AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-
-                dialog.setTitle("Turn on Automatic Mode")
-                        //.setIcon(R.drawable.ic_launcher)
-                        .setMessage("This mode requires to use your bluetooth, are you agree?")
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialoginterface, int i) {
-                                return;
-                            }})
-                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialoginterface, int i) {
-
-
-
-
-                               automaticMode = new AutomaticMode();
+                    dialog.setTitle("Turn on Automatic Mode")
+                            //.setIcon(R.drawable.ic_launcher)
+                            .setMessage("This mode requires to use your bluetooth, are you agree?")
+                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialoginterface, int i) {
+                                    return;
+                                }
+                            })
+                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialoginterface, int i) {
 
 
-                            }
-                        }).show();
+                                    if(receiver==null) instanciarReceiver();
+
+                                    else registerReceiver(receiver,intentFilter);
 
 
+                                    AutomaticModeOn=true;
+
+
+                                }
+                            }).show();
+
+                }
+
+                else
+                {
+                    AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+
+                    dialog.setTitle("Turn off Automatic Mode")
+                            //.setIcon(R.drawable.ic_launcher)
+                            .setMessage("Do you want to turn off your automatic mode?")
+                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialoginterface, int i) {
+                                    return;
+                                }
+                            })
+                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialoginterface, int i) {
+
+
+                                    unregisterReceiver(receiver);
+                                    AutomaticModeOn=false;
+
+
+                                }
+                            }).show();
+                }
 
 
                 return true;
@@ -530,6 +594,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onStart() {
         super.onStart();
+
+
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -567,6 +633,18 @@ public class MainActivity extends AppCompatActivity
         client.disconnect();
     }
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
+
+    public void OnDestroy()
+    {
+        super.onDestroy();
+        unregisterReceiver(receiver);
+    }
 
 
 

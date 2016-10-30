@@ -5,9 +5,25 @@
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorAccent">@color/common_plus_signin_btn_text_dark_focused</item>
+
+
     </style>
 
+    <style name="AppTheme..ActionBar.Text" parent="@android:style/TextAppearance">
+        <item name="android:textColor">@color/common_plus_signin_btn_text_dark_focused</item>
+        <item name="actionMenuTextColor">@android:color/white</item>
+
+        <item name="android:actionMenuTextColor">@android:color/white</item>
+    </style>
+
+    <style name="ActionBarTitleText" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Title">
+        <item name="android:textColor">@color/common_plus_signin_btn_text_dark_focused</item>
+        <item name="android:textSize">12sp</item>
+        <item name="actionMenuTextColor">@android:color/white</item>
+
+        <item name="android:actionMenuTextColor">@android:color/white</item>
+    </style>
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
