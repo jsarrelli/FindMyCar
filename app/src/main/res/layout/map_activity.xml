@@ -30,7 +30,7 @@
            android:choiceMode="singleChoice"
            android:divider="@android:color/transparent"
            android:dividerHeight="0dp"
-           android:background="#111"/>
+           android:background="#fdfdfd"/>
 
 
        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
@@ -60,7 +60,9 @@
            android:layout_alignParentBottom="true"
            android:layout_alignParentRight="true"
            android:layout_alignParentEnd="true"
-           android:layout_marginBottom="50dp" />
+           android:layout_marginRight="10dp"
+           android:layout_marginBottom="50dp"
+           app:backgroundTint="@android:color/holo_red_light"/>
 
 
        <android.support.design.widget.FloatingActionButton
@@ -76,6 +78,7 @@
            android:layout_alignParentRight="true"
            android:layout_alignParentEnd="true"
            android:layout_marginBottom="110dp"
+           android:layout_marginRight="10dp"
            app:backgroundTint="@android:color/holo_blue_light"/>
 
        <TextView
@@ -104,10 +107,9 @@
            android:layout_height="?attr/actionBarSize"
            android:background="?attr/colorPrimary"
            android:elevation="10dp"
-           android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-           app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-           android:layout_alignRight="@+id/walk"
-           android:layout_alignEnd="@+id/walk" />
+           android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+           app:popupTheme="@style/ThemeOverlay.AppCompat.Dark"
+           />
 
 
 

@@ -4,18 +4,18 @@
 
     <item
         android:id="@+id/action_refresh"
-        app:showAsAction="ifRoom"
+        app:showAsAction="never"
         android:icon="@drawable/refresh"
         android:title="Refresh"/>
 
     <item
         android:id="@+id/action_adress"
-        app:showAsAction="ifRoom"
+        app:showAsAction="always"
         android:icon="@drawable/adress"
         android:title="Adress"/>
 
     <item android:id="@+id/action_locate"
-    android:icon="@drawable/tipito3"
+    android:icon="@drawable/target"
     android:title="@string/menu_location"
     app:showAsAction="always"  />
 
@@ -26,14 +26,16 @@
 
     <item
         android:id="@+id/action_clear"
-
-        android:title="@string/clear">
+        android:icon="@drawable/bin"
+        android:title="@string/clear"
+        app:showAsAction="always">
     </item>
 
-    <item
+<!--    <item
         android:id="@+id/action_settings"
 
         android:title="@string/settings">
     </item>
+    -->
 
 </menu>

@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -74,12 +75,13 @@ public class MainActivity extends AppCompatActivity
     private Toolbar toolbar;
     private boolean refreshVisible = false;
     private boolean AddressVisible = false;
-    private boolean clearVisible=false;
-    private boolean AutomaticModeOn=false;
+    private boolean clearVisible = false;
+    private boolean AutomaticModeOn = false;
     private IntentFilter intentFilter;
-    private  BroadcastReceiver receiver;
-
-
+    private BroadcastReceiver receiver;
+    private double distance=0;
+    private Location marker;
+    private Thread thread;
 
 
     /**
@@ -89,14 +91,7 @@ public class MainActivity extends AppCompatActivity
     private GoogleApiClient client;
 
 
-
-
-
-
-
-
     protected void onCreate(Bundle savedInstanceState) {
-
 
 
         super.onCreate(savedInstanceState);
@@ -105,13 +100,10 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
 
-
-
-
 ///esto es para los permission para el cornudo del marshamallow 6.0
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     1);
         }
 
@@ -124,8 +116,11 @@ public class MainActivity extends AppCompatActivity
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-
+        //activa GPS
         checkGPSenabled();
+
+        //te dice que si activas el WIFI es mas precisa la ubicacion
+        checkWIFIenabled();
         navegar = (FloatingActionButton) findViewById(R.id.walk);
         navegar.setOnClickListener(this);
         navegar.hide();
@@ -134,12 +129,87 @@ public class MainActivity extends AppCompatActivity
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
+        newThread();
+
+
+    }
+
+    private void newThread() {
+
+       thread = new Thread() {
+
+            public void run() {
+
+
+                while (true){
+
+
+                        try {
+
+                            distance = getLocation().distanceTo(marker);
+
+
+                            Log.v("tag", String.valueOf(distance));
+
+
+                            if (distance > 5) {
+                                navegar.show();
+                                refreshVisible = false;
+                                AddressVisible = true;
+                                clearVisible = true;
+                                invalidateOptionsMenu();
+                                break;
+                            }
+                            wait();
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            Log.v("tag", "aca se rompio");
+                        }
+                }
+
+            }
+
+
+
+        };
     }
 
 
-    private void instanciarReceiver()
-    {
-         receiver=new BroadcastReceiver() {
+    private void checkWIFIenabled() {
+
+
+        final WifiManager wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        if(!wifiManager.isWifiEnabled()) {
+
+            AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+
+            dialog.setTitle("Turn on WIFI")
+                    //.setIcon(R.drawable.ic_launcher)
+                    .setMessage("If your WIFI is enabled you will get a better accuracy on your location")
+                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialoginterface, int i) {
+                            return;
+                        }
+                    })
+                    .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialoginterface, int i) {
+
+
+                            wifiManager.setWifiEnabled(true);
+
+
+                        }
+                    }).show();
+
+        }
+
+    }
+
+
+    private void instanciarReceiver() {
+        receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
@@ -154,14 +224,13 @@ public class MainActivity extends AppCompatActivity
 
                     mMap.clear();
                     refreshVisible = false;
-                    AddressVisible =false;
-                    clearVisible=false;
+                    AddressVisible = false;
+                    clearVisible = false;
                     navegar.hide();
                     invalidateOptionsMenu();
 
 
-                }
-                else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
+                } else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
 
                     saveLocation();
 
@@ -179,7 +248,6 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.map_activity, menu);
         return true;
@@ -190,13 +258,14 @@ public class MainActivity extends AppCompatActivity
         if (refreshVisible) menu.findItem(R.id.action_refresh).setVisible(true);
         else menu.findItem(R.id.action_refresh).setVisible(false);
 
-        if(AddressVisible)menu.findItem(R.id.action_adress).setVisible(true);
+        if (AddressVisible) menu.findItem(R.id.action_adress).setVisible(true);
         else menu.findItem(R.id.action_adress).setVisible(false);
 
-        if(clearVisible)menu.findItem(R.id.action_clear).setVisible(true);
+        if (clearVisible) menu.findItem(R.id.action_clear).setVisible(true);
         else menu.findItem(R.id.action_clear).setVisible(false);
 
-        if(AutomaticModeOn)menu.findItem(R.id.action_AutomaticMode).setTitle(R.string.turnOffAutomaticMode);
+        if (AutomaticModeOn)
+            menu.findItem(R.id.action_AutomaticMode).setTitle(R.string.turnOffAutomaticMode);
         else menu.findItem(R.id.action_AutomaticMode).setTitle(R.string.turnOnAutomaticMode);
 
         return true;
@@ -208,27 +277,26 @@ public class MainActivity extends AppCompatActivity
         mMap = map;
 
 
-
-
+        //activamos la location
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
             return;
         }
-
-        //activamos la location
-        mMap.setMyLocationEnabled(true);
+        activarLocation();
 
         //se instancia la location
         location = getLocation();
 
         //centra la camara
         if (location != null) {
-            centrarCamara(mMap,location.getLatitude(),location.getLongitude());
+            centrarCamara(mMap, location.getLatitude(), location.getLongitude());
         }
-
-
-
-
 
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -240,6 +308,17 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
+
+
+
+
+
+
+
+
+
+
+
 
 
         navegar.setOnClickListener(new View.OnClickListener() {
@@ -270,6 +349,8 @@ public class MainActivity extends AppCompatActivity
 
 
 
+
+
     }
 
     public void saveLocation() {
@@ -279,21 +360,24 @@ public class MainActivity extends AppCompatActivity
 
             mMap.clear();
 
+
+            Toast toast = Toast.makeText(getApplicationContext(), "Location saved", Toast.LENGTH_SHORT);
+            toast.show();
             latitudMarker = location.getLatitude();
             longitudMarker = location.getLongitude();
 
-
+            marker=new Location("Marker");
+            marker.setLatitude(latitudMarker);
+            marker.setLongitude(longitudMarker);
 
 
             mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Aca dejaste el auto!").snippet(getAdress(location.getLatitude(), location.getLongitude())));
 
             destination = new LatLng(location.getLatitude(), location.getLongitude());
 
-            navegar.show();
-            refreshVisible = false;
-            AddressVisible =true;
-            clearVisible=true;
-            invalidateOptionsMenu();
+            thread.start();
+            thread.run();
+
 
         }
 
@@ -331,6 +415,7 @@ public class MainActivity extends AppCompatActivity
         }
 
 
+
         if (locationManager.getLastKnownLocation(provider) == null) {
             return locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         }
@@ -340,7 +425,7 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    public void centrarCamara(GoogleMap mMap,double latitud,double longitud) {
+    public void centrarCamara(GoogleMap mMap, double latitud, double longitud) {
 
         //esta forma centra la camara pero sin animacion
 //            double latitude = location.getLatitude();
@@ -369,14 +454,39 @@ public class MainActivity extends AppCompatActivity
         switch (requestCode) {
             case 1:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    location = getLocation();
-                    centrarCamara(mMap,location.getLatitude(),location.getLongitude());
+
+                    try {
+                        activarLocation();
+                        location = getLocation();
+                        centrarCamara(mMap,location.getLatitude(),location.getLongitude());
+                    }
+                    catch(Exception e) {
+                        Snackbar.make(navegar, "No funciona el GPS", Snackbar.LENGTH_SHORT).show();
+
+                    }
+
                 } else {
                     Toast.makeText(this, "Permitilo papi, no seas goma!", Toast.LENGTH_SHORT).show();
                 }
 
                 break;
         }
+    }
+
+    public void activarLocation()
+    {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+
+        mMap.setMyLocationEnabled(true);
     }
 
     private void checkGPSenabled() {
@@ -499,8 +609,16 @@ public class MainActivity extends AppCompatActivity
 
 
             case R.id.action_locate:
-                location=getLocation();
-                centrarCamara(mMap,location.getLatitude(),location.getLongitude());
+
+                try {
+                    location = getLocation();
+                    centrarCamara(mMap, location.getLatitude(), location.getLongitude());
+                    return true;
+                } catch (Exception e)
+                {
+                    Snackbar.make(navegar, "No funciona el GPS", Snackbar.LENGTH_SHORT).show();
+                }
+
                 return true;
 
             case R.id.action_refresh:
@@ -512,6 +630,7 @@ public class MainActivity extends AppCompatActivity
             case R.id.action_adress:
                 alertView("Tu auto se encuntra en: "+getAdress(latitudMarker, longitudMarker),"Direccion");
                 location=getLocation();
+                //centra la camara en el punto guardado
                 centrarCamara(mMap,location.getLatitude(),location.getLongitude());
 
 
@@ -533,7 +652,7 @@ public class MainActivity extends AppCompatActivity
 
                     dialog.setTitle("Turn on Automatic Mode")
                             //.setIcon(R.drawable.ic_launcher)
-                            .setMessage("This mode requires to use your bluetooth, are you agree?")
+                            .setMessage("This mode requires to use your bluetooth, do you agree?")
                             .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialoginterface, int i) {
                                     return;
