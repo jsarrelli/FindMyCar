@@ -81,7 +81,6 @@ public class MainActivity extends AppCompatActivity
     private BroadcastReceiver receiver;
     private double distance=0;
     private Location marker;
-    private Thread thread;
 
 
     /**
@@ -314,36 +313,43 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void saveLocation() {
-        location = getLocation();
 
-        if (location != null) {
+        try {
+            location = getLocation();
 
-            mMap.clear();
+            if (location != null) {
 
-
-            Toast toast = Toast.makeText(getApplicationContext(), "Location saved", Toast.LENGTH_SHORT);
-            toast.show();
-            latitudMarker = location.getLatitude();
-            longitudMarker = location.getLongitude();
-
-            marker=new Location("Marker");
-            marker.setLatitude(latitudMarker);
-            marker.setLongitude(longitudMarker);
+                mMap.clear();
 
 
-            mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Aca dejaste el auto!").snippet(getAdress(location.getLatitude(), location.getLongitude())));
+                Toast toast = Toast.makeText(getApplicationContext(), "Location saved", Toast.LENGTH_SHORT);
+                toast.show();
+                latitudMarker = location.getLatitude();
+                longitudMarker = location.getLongitude();
 
-            destination = new LatLng(location.getLatitude(), location.getLongitude());
+                marker = new Location("Marker");
+                marker.setLatitude(latitudMarker);
+                marker.setLongitude(longitudMarker);
 
-        
+
+                mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Aca dejaste el auto!").snippet(getAdress(location.getLatitude(), location.getLongitude())));
+
+                destination = new LatLng(location.getLatitude(), location.getLongitude());
+
+
+            }
+
+            if (location == null) {
+
+                Snackbar.make(navegar, "No funciona el GPS", Snackbar.LENGTH_SHORT).show();
+            }
 
         }
 
-        if (location == null) {
-
-            Snackbar.make(navegar, "No funciona el GPS", Snackbar.LENGTH_SHORT).show();
+        catch (Exception e)
+        {
+            Snackbar.make(navegar, "No es posible realizar la accion", Snackbar.LENGTH_SHORT).show();
         }
-
     }
 
 
