@@ -135,46 +135,6 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    private void newThread() {
-
-       thread = new Thread() {
-
-            public void run() {
-
-
-                while (true){
-
-
-                        try {
-
-                            distance = getLocation().distanceTo(marker);
-
-
-                            Log.v("tag", String.valueOf(distance));
-
-
-                            if (distance > 5) {
-                                navegar.show();
-                                refreshVisible = false;
-                                AddressVisible = true;
-                                clearVisible = true;
-                                invalidateOptionsMenu();
-                                break;
-                            }
-                            wait();
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            Log.v("tag", "aca se rompio");
-                        }
-                }
-
-            }
-
-
-
-        };
-    }
 
 
     private void checkWIFIenabled() {
@@ -756,6 +716,33 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+
+        try {
+
+            if (marker != null) {
+
+                distance = getLocation().distanceTo(marker);
+
+
+                Log.v("tag", String.valueOf(distance));
+
+
+                if (distance > 5) {
+                    navegar.show();
+                    refreshVisible = false;
+                    AddressVisible = true;
+                    clearVisible = true;
+                    invalidateOptionsMenu();
+
+                }
+
+            }
+            }catch(Exception e){
+                e.printStackTrace();
+                Log.v("tag", "aca se rompio");
+            }
+
+
 
     }
 
