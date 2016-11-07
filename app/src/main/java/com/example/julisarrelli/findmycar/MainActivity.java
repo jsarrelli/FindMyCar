@@ -335,9 +335,7 @@ public class MainActivity extends AppCompatActivity
 
             destination = new LatLng(location.getLatitude(), location.getLongitude());
 
-            thread.start();
-            thread.run();
-
+        
 
         }
 
