@@ -87,6 +87,7 @@ public class MainActivity extends AppCompatActivity
     private Location marker;
     private boolean RouteOn=false;
     private boolean MarkerOn=false;
+    private boolean NavegarOn=false;
 
 
     /**
@@ -158,6 +159,7 @@ public class MainActivity extends AppCompatActivity
                             refreshVisible = false;
                             AddressVisible = true;
                             clearVisible = true;
+                            NavegarOn=true;
                             invalidateOptionsMenu();
 
                         }
@@ -380,6 +382,7 @@ public class MainActivity extends AppCompatActivity
             AddressVisible =true;
             clearVisible=true;
             navegar.hide();
+            NavegarOn=false;
             invalidateOptionsMenu();
             marker=null;
             RouteOn=false;
@@ -430,7 +433,7 @@ public class MainActivity extends AppCompatActivity
 
             mMap.clear();
 
-            mMap.addMarker(new MarkerOptions().position(new LatLng(latitudMarker, longitudMarker)).title("Aca dejaste el auto!").snippet(getAdress(location.getLatitude(), location.getLongitude())));
+            mMap.addMarker(new MarkerOptions().position(new LatLng(marker.getLatitude(),marker.getLongitude())).title("Aca dejaste el auto!").snippet(getAdress(marker.getLatitude(), marker.getLongitude())));
 
             requestDirection();
 
@@ -649,6 +652,25 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+    @Override
+    public void onBackPressed() {
+        new AlertDialog.Builder(this)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setTitle("Closing App")
+                .setMessage("Are you sure you want to close this activity? You might lose you car position")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+                {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+
 
 
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -761,6 +783,7 @@ public class MainActivity extends AppCompatActivity
         invalidateOptionsMenu();
         RouteOn=false;
         MarkerOn=false;
+        NavegarOn=false;
     }
 
 
@@ -835,6 +858,8 @@ public class MainActivity extends AppCompatActivity
         outState.putBoolean("AutomaticModeOn", AutomaticModeOn);
         outState.putBoolean("RouteOn", RouteOn);
         outState.putBoolean("MarkerOn", MarkerOn);
+        outState.putBoolean("NavegarOn", NavegarOn);
+
 
         if(MarkerOn){
             outState.putDouble("LatitudMarker", marker.getLatitude());
@@ -861,14 +886,17 @@ public class MainActivity extends AppCompatActivity
 
         if(MarkerOn) {
 
-            Log.v("tag","entro al markenON del restore");
-            Log.v("tag", String.valueOf(savedInstanceState.getDouble("LongitudMarker")));
-            Log.v("tag", String.valueOf(savedInstanceState.getDouble("LatitudMarker")));
+            destination = new LatLng(savedInstanceState.getDouble("LatitudMarker"), savedInstanceState.getDouble("LongitudMarker"));
 
             marker = new Location("Marker");
             marker.setLongitude(savedInstanceState.getDouble("LongitudMarker"));
             marker.setLatitude(savedInstanceState.getDouble("LatitudMarker"));
         }
+
+        if(NavegarOn) navegar.show();
+
+
+
 
 
 
