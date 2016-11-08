@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.provider.Settings;
@@ -31,6 +32,7 @@ import com.akexorcist.googledirection.util.DirectionConverter;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -42,7 +44,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import android.content.Context;
 import android.location.Location;
 import android.location.Criteria;
-import android.location.LocationManager;
+import  com.google.android.gms.location.LocationListener;
 
 import com.google.android.gms.maps.model.CameraPosition;
 
@@ -63,8 +65,10 @@ import java.util.List;
 import java.util.Locale;
 
 
+
+
 public class MainActivity extends AppCompatActivity
-        implements OnMapReadyCallback, View.OnClickListener, DirectionCallback {
+        implements OnMapReadyCallback, View.OnClickListener, DirectionCallback{
 
     private GoogleMap mMap;
     private Location location;
@@ -81,6 +85,8 @@ public class MainActivity extends AppCompatActivity
     private BroadcastReceiver receiver;
     private double distance=0;
     private Location marker;
+    private boolean RouteOn=false;
+    private boolean MarkerOn=false;
 
 
     /**
@@ -114,6 +120,7 @@ public class MainActivity extends AppCompatActivity
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        mapFragment.setRetainInstance(true);
 
         //activa GPS
         checkGPSenabled();
@@ -128,6 +135,63 @@ public class MainActivity extends AppCompatActivity
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
+
+
+        LocationManager locationmanager=(LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        Location location=locationmanager.getLastKnownLocation(BestProvider());
+
+        android.location.LocationListener locationListener = new android.location.LocationListener() {
+            public void onLocationChanged(Location location) {
+                //Any method here
+                try {
+
+                    if (MarkerOn &&!RouteOn) {
+                        distance = getLocation().distanceTo(marker);
+
+
+
+
+
+                        if (distance >=3) {
+                            navegar.show();
+                            refreshVisible = false;
+                            AddressVisible = true;
+                            clearVisible = true;
+                            invalidateOptionsMenu();
+
+                        }
+
+                    }
+                }
+
+                catch(Exception e){
+                    e.printStackTrace();
+
+                }
+
+
+            }
+
+            @Override
+            public void onStatusChanged(String s, int i, Bundle bundle) {
+
+
+            }
+
+
+            @Override
+            public void onProviderEnabled(String s) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String s) {
+
+            }
+        };
+
+        locationmanager.requestLocationUpdates(BestProvider(),2000,0,locationListener);
 
 
 
@@ -263,21 +327,12 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
 
+
+
                 saveLocation();
 
             }
         });
-
-
-
-
-
-
-
-
-
-
-
 
 
         navegar.setOnClickListener(new View.OnClickListener() {
@@ -307,19 +362,35 @@ public class MainActivity extends AppCompatActivity
         });
 
 
-
-
-
     }
+
+
+
+
 
     public void saveLocation() {
 
+
+
+
         try {
+
+            mMap.clear();
+            refreshVisible = false;
+            AddressVisible =true;
+            clearVisible=true;
+            navegar.hide();
+            invalidateOptionsMenu();
+            marker=null;
+            RouteOn=false;
+            MarkerOn=true;
+
             location = getLocation();
 
             if (location != null) {
 
-                mMap.clear();
+
+
 
 
                 Toast toast = Toast.makeText(getApplicationContext(), "Location saved", Toast.LENGTH_SHORT);
@@ -335,6 +406,7 @@ public class MainActivity extends AppCompatActivity
                 mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Aca dejaste el auto!").snippet(getAdress(location.getLatitude(), location.getLongitude())));
 
                 destination = new LatLng(location.getLatitude(), location.getLongitude());
+
 
 
             }
@@ -361,6 +433,8 @@ public class MainActivity extends AppCompatActivity
             mMap.addMarker(new MarkerOptions().position(new LatLng(latitudMarker, longitudMarker)).title("Aca dejaste el auto!").snippet(getAdress(location.getLatitude(), location.getLongitude())));
 
             requestDirection();
+
+            RouteOn=true;
         }
     }
 
@@ -370,8 +444,7 @@ public class MainActivity extends AppCompatActivity
         LocationManager locationManager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
 
 
-        Criteria criteria = new Criteria();
-        String provider = locationManager.getBestProvider(criteria, true);
+
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
@@ -380,12 +453,22 @@ public class MainActivity extends AppCompatActivity
 
 
 
-        if (locationManager.getLastKnownLocation(provider) == null) {
+        if (locationManager.getLastKnownLocation(BestProvider()) == null) {
             return locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         }
 
 
-        return locationManager.getLastKnownLocation(provider);
+        return locationManager.getLastKnownLocation(BestProvider());
+    }
+
+
+    public String BestProvider()
+    {
+        LocationManager locationManager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
+
+        Criteria criteria = new Criteria();
+        String provider = locationManager.getBestProvider(criteria, true);
+        return  provider;
     }
 
 
@@ -601,12 +684,7 @@ public class MainActivity extends AppCompatActivity
                 return true;
 
             case R.id.action_clear:
-                mMap.clear();
-                refreshVisible = false;
-                AddressVisible =false;
-                clearVisible=false;
-                navegar.hide();
-                invalidateOptionsMenu();
+                clear();
                 return true;
 
             case R.id.action_AutomaticMode:
@@ -673,6 +751,18 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private void clear() {
+
+        mMap.clear();
+        refreshVisible = false;
+        AddressVisible =false;
+        clearVisible=false;
+        navegar.hide();
+        invalidateOptionsMenu();
+        RouteOn=false;
+        MarkerOn=false;
+    }
+
 
     @Override
     public void onStart() {
@@ -721,34 +811,10 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
 
-        try {
-
-            if (marker != null) {
-
-                distance = getLocation().distanceTo(marker);
-
-
-                Log.v("tag", String.valueOf(distance));
-
-
-                if (distance > 5) {
-                    navegar.show();
-                    refreshVisible = false;
-                    AddressVisible = true;
-                    clearVisible = true;
-                    invalidateOptionsMenu();
-
-                }
-
-            }
-            }catch(Exception e){
-                e.printStackTrace();
-                Log.v("tag", "aca se rompio");
-            }
-
 
 
     }
+
 
     public void OnDestroy()
     {
@@ -757,5 +823,69 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+
+
+
+        outState.putBoolean("refreshVisible", refreshVisible);
+        outState.putBoolean("AddressVisible", AddressVisible);
+        outState.putBoolean("clearVisible", clearVisible);
+        outState.putBoolean("AutomaticModeOn", AutomaticModeOn);
+        outState.putBoolean("RouteOn", RouteOn);
+        outState.putBoolean("MarkerOn", MarkerOn);
+
+        if(MarkerOn){
+            outState.putDouble("LatitudMarker", marker.getLatitude());
+            outState.putDouble("LongitudMarker", marker.getLongitude());
+        }
+
+        if(marker!=null)outState.putBoolean("MarkerOn",true);
+
+
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+
+
+
+        refreshVisible = savedInstanceState.getBoolean("refreshVisible");
+        AddressVisible = savedInstanceState.getBoolean("AddressVisible");
+        clearVisible = savedInstanceState.getBoolean("clearVisible");
+        AutomaticModeOn = savedInstanceState.getBoolean("AutomaticModeOn");
+        RouteOn = savedInstanceState.getBoolean("RouteOn");
+        MarkerOn = savedInstanceState.getBoolean("MarkerOn");
+
+        if(MarkerOn) {
+
+            Log.v("tag","entro al markenON del restore");
+            Log.v("tag", String.valueOf(savedInstanceState.getDouble("LongitudMarker")));
+            Log.v("tag", String.valueOf(savedInstanceState.getDouble("LatitudMarker")));
+
+            marker = new Location("Marker");
+            marker.setLongitude(savedInstanceState.getDouble("LongitudMarker"));
+            marker.setLatitude(savedInstanceState.getDouble("LatitudMarker"));
+        }
+
+
+
+        invalidateOptionsMenu();
+
+
+
+
+
+
+
+
+        super.onRestoreInstanceState(savedInstanceState);
+
+
+
+
+    }
 
 }
