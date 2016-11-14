@@ -32,7 +32,6 @@ import com.akexorcist.googledirection.util.DirectionConverter;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -44,7 +43,6 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import android.content.Context;
 import android.location.Location;
 import android.location.Criteria;
-import  com.google.android.gms.location.LocationListener;
 
 import com.google.android.gms.maps.model.CameraPosition;
 
@@ -64,7 +62,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 
 public class MainActivity extends AppCompatActivity
@@ -130,7 +132,10 @@ public class MainActivity extends AppCompatActivity
         checkWIFIenabled();
         navegar = (FloatingActionButton) findViewById(R.id.walk);
         navegar.setOnClickListener(this);
-        navegar.hide();
+
+
+        if(!NavegarOn)navegar.hide();
+
 
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -210,9 +215,9 @@ public class MainActivity extends AppCompatActivity
 
             AlertDialog.Builder dialog = new AlertDialog.Builder(this);
 
-            dialog.setTitle("Turn on WIFI")
+            dialog.setTitle(R.string.CheckWifi_title)
                     //.setIcon(R.drawable.ic_launcher)
-                    .setMessage("If your WIFI is enabled you will get a better accuracy on your location")
+                    .setMessage(R.string.CheckWifi_message)
                     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialoginterface, int i) {
                             return;
@@ -357,7 +362,7 @@ public class MainActivity extends AppCompatActivity
                 }
 
 
-                Snackbar.make(navegar, "No se encuentra un destino", Snackbar.LENGTH_SHORT).show();
+                Snackbar.make(navegar,R.string.NoDestination, Snackbar.LENGTH_SHORT).show();
 
 
             }
@@ -396,17 +401,17 @@ public class MainActivity extends AppCompatActivity
 
 
 
-                Toast toast = Toast.makeText(getApplicationContext(), "Location saved", Toast.LENGTH_SHORT);
+                Toast toast = Toast.makeText(getApplicationContext(), R.string.LocationSaved, Toast.LENGTH_SHORT);
                 toast.show();
                 latitudMarker = location.getLatitude();
                 longitudMarker = location.getLongitude();
 
-                marker = new Location("Marker");
+                marker = new Location(String.valueOf(R.string.Marker));
                 marker.setLatitude(latitudMarker);
                 marker.setLongitude(longitudMarker);
 
 
-                mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Aca dejaste el auto!").snippet(getAdress(location.getLatitude(), location.getLongitude())));
+                mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title(String.valueOf(R.string.YourCarIsHere)).snippet(getAdress(location.getLatitude(), location.getLongitude())));
 
                 destination = new LatLng(location.getLatitude(), location.getLongitude());
 
@@ -416,14 +421,14 @@ public class MainActivity extends AppCompatActivity
 
             if (location == null) {
 
-                Snackbar.make(navegar, "No funciona el GPS", Snackbar.LENGTH_SHORT).show();
+                Snackbar.make(navegar, R.string.NoGPS, Snackbar.LENGTH_SHORT).show();
             }
 
         }
 
         catch (Exception e)
         {
-            Snackbar.make(navegar, "No es posible realizar la accion", Snackbar.LENGTH_SHORT).show();
+            Snackbar.make(navegar, R.string.CannotBeDone, Snackbar.LENGTH_SHORT).show();
         }
     }
 
@@ -433,7 +438,7 @@ public class MainActivity extends AppCompatActivity
 
             mMap.clear();
 
-            mMap.addMarker(new MarkerOptions().position(new LatLng(marker.getLatitude(),marker.getLongitude())).title("Aca dejaste el auto!").snippet(getAdress(marker.getLatitude(), marker.getLongitude())));
+            mMap.addMarker(new MarkerOptions().position(new LatLng(marker.getLatitude(),marker.getLongitude())).title(String.valueOf(R.string.YourCarIsHere)).snippet(getAdress(marker.getLatitude(), marker.getLongitude())));
 
             requestDirection();
 
@@ -511,12 +516,12 @@ public class MainActivity extends AppCompatActivity
                         centrarCamara(mMap,location.getLatitude(),location.getLongitude());
                     }
                     catch(Exception e) {
-                        Snackbar.make(navegar, "No funciona el GPS", Snackbar.LENGTH_SHORT).show();
+                        Snackbar.make(navegar,R.string.NoGPS, Snackbar.LENGTH_SHORT).show();
 
                     }
 
                 } else {
-                    Toast.makeText(this, "Permitilo papi, no seas goma!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this,R.string.AcceptGPS, Toast.LENGTH_SHORT).show();
                 }
 
                 break;
@@ -554,16 +559,16 @@ public class MainActivity extends AppCompatActivity
     private void showDialogGPS() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setCancelable(false);
-        builder.setTitle("Activar GPS");
-        builder.setMessage("Para que la app funcione correctamente, debes activar el GPS");
+        builder.setTitle(R.string.TurnOnGPS);
+        builder.setMessage(R.string.AcceptGPS);
         builder.setInverseBackgroundForced(true);
-        builder.setPositiveButton("Activar", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton(R.string.Accept, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 startActivity(
                         new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
             }
         });
-        builder.setNegativeButton("Ignorar", new DialogInterface.OnClickListener() {
+        builder.setNegativeButton(R.string.Ignore, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
             }
@@ -598,7 +603,7 @@ public class MainActivity extends AppCompatActivity
 
 
         LatLng origin = new LatLng(location.getLatitude(), location.getLongitude());
-        Toast toast = Toast.makeText(getApplicationContext(), "Calculando ruta...", Toast.LENGTH_SHORT);
+        Toast toast = Toast.makeText(getApplicationContext(),R.string.CalculateRoute, Toast.LENGTH_SHORT);
         toast.show();
         GoogleDirection.withServerKey("AIzaSyDj6bsaW6DYgSYfertBx16fug2u0W6Pstc")
                 .from(origin)
@@ -635,7 +640,7 @@ public class MainActivity extends AppCompatActivity
 
 
 
-    public void alertView(String message,String title) {
+    public void alertView(String message, int title) {
         AlertDialog.Builder dialog = new AlertDialog.Builder(this);
 
         dialog.setTitle(title)
@@ -656,9 +661,9 @@ public class MainActivity extends AppCompatActivity
     public void onBackPressed() {
         new AlertDialog.Builder(this)
                 .setIcon(android.R.drawable.ic_dialog_alert)
-                .setTitle("Closing App")
-                .setMessage("Are you sure you want to close this activity? You might lose you car position")
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener()
+                .setTitle(R.string.CloseAppTitle)
+                .setMessage(R.string.CloseAppMessage)
+                .setPositiveButton(R.string.Accept, new DialogInterface.OnClickListener()
                 {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -666,7 +671,7 @@ public class MainActivity extends AppCompatActivity
                     }
 
                 })
-                .setNegativeButton("No", null)
+                .setNegativeButton(R.string.Cancel, null)
                 .show();
     }
 
@@ -685,7 +690,7 @@ public class MainActivity extends AppCompatActivity
                     return true;
                 } catch (Exception e)
                 {
-                    Snackbar.make(navegar, "No funciona el GPS", Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(navegar,R.string.NoGPS, Snackbar.LENGTH_SHORT).show();
                 }
 
                 return true;
@@ -697,7 +702,10 @@ public class MainActivity extends AppCompatActivity
                 return true;
 
             case R.id.action_adress:
-                alertView("Tu auto se encuntra en: "+getAdress(latitudMarker, longitudMarker),"Direccion");
+               // String direction=R.string.CarDirection;
+
+               String direction= this.getString(R.string.CarDirection);
+                alertView(direction+getAdress(latitudMarker, longitudMarker), R.string.Adress);
                 location=getLocation();
                 //centra la camara en el punto guardado
                 centrarCamara(mMap,location.getLatitude(),location.getLongitude());
@@ -709,20 +717,43 @@ public class MainActivity extends AppCompatActivity
                 clear();
                 return true;
 
+            case R.id.retrofit:
+
+
+                AlertDialog.Builder dialog2 = new AlertDialog.Builder(this);
+
+                try {
+                    dialog2.setTitle(R.string.RetrofitTitle)
+                            //.setIcon(R.drawable.ic_launcher)
+                            .setMessage(MovidaRetrofit())
+
+                            .setPositiveButton(R.string.Accept, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialoginterface, int i) {     }
+                            }).show();
+                }
+                catch (Exception e)
+                {
+                    Toast.makeText(this,R.string.CannotBeDone, Toast.LENGTH_SHORT).show();
+
+                }
+
+
+                return true;
+
             case R.id.action_AutomaticMode:
 
                 if(!AutomaticModeOn) {
                     AlertDialog.Builder dialog = new AlertDialog.Builder(this);
 
-                    dialog.setTitle("Turn on Automatic Mode")
+                    dialog.setTitle(R.string.AutomaticModeOnTitle)
                             //.setIcon(R.drawable.ic_launcher)
-                            .setMessage("This mode requires to use your bluetooth, do you agree?")
-                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            .setMessage(R.string.AutomaticModeOnMessage)
+                            .setNegativeButton(R.string.Cancel, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialoginterface, int i) {
                                     return;
                                 }
                             })
-                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            .setPositiveButton(R.string.Accept, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialoginterface, int i) {
 
 
@@ -743,15 +774,15 @@ public class MainActivity extends AppCompatActivity
                 {
                     AlertDialog.Builder dialog = new AlertDialog.Builder(this);
 
-                    dialog.setTitle("Turn off Automatic Mode")
+                    dialog.setTitle(R.string.AutomaticModeOffTitle)
                             //.setIcon(R.drawable.ic_launcher)
-                            .setMessage("Do you want to turn off your automatic mode?")
-                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            .setMessage(R.string.AutomaticModeOffMessage)
+                            .setNegativeButton(R.string.Accept, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialoginterface, int i) {
                                     return;
                                 }
                             })
-                            .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            .setPositiveButton(R.string.Cancel, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialoginterface, int i) {
 
 
@@ -792,7 +823,7 @@ public class MainActivity extends AppCompatActivity
         super.onStart();
 
 
-
+      MovidaRetrofit();
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client.connect();
@@ -807,6 +838,65 @@ public class MainActivity extends AppCompatActivity
                 Uri.parse("android-app://com.example.julisarrelli.findmycar/http/host/path")
         );
         AppIndex.AppIndexApi.start(client, viewAction);
+
+
+
+    }
+
+    private String MovidaRetrofit() {
+
+        final String[] cadena = new String[1];
+
+
+        final String BASE_URL = "https://private-c9d064-prueba138.apiary-mock.com/";
+        //final String BASE_URL = "https://private-e3aac-ipm1.apiary-mock.com/";
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        QuestionService service = retrofit.create(QuestionService.class);
+
+        Call<List<Question>> questions = service.getQuestions();
+
+        questions.enqueue(new Callback<List<Question>>() {
+
+
+            @Override
+
+            public void onResponse(Call<List<Question>> call, Response<List<Question>> response) {
+
+                Log.v("Retrofit","aca entro");
+                if (response.isSuccessful()){
+                    /*
+                        Acá es cuando las response Http  poseen un código 200 o 201.
+                        Es cuando hubo éxito con la consulta.
+                     */
+                    Log.v("Retrofit",response.body().toString());
+                    cadena[0] = response.body().toString();
+
+//
+                }else{
+                    /*Aunque hubo respuesta del servidor, todavía puede haber error 404 o 500.
+                        Es decir, error del cliente (se está queriendo acceder a un recurso inexistente)
+                        o del servidor (errores con la base de datos, por ejemplo).
+                     */
+                }
+
+            }
+
+            @Override
+            public void onFailure(Call<List<Question>> call, Throwable t) {
+
+                Log.v("Retrofit","failure");
+
+            }
+        });
+
+
+
+        return cadena[0];
+
     }
 
     @Override

@@ -1,0 +1,57 @@
+<resources>
+    <string name="app_name">Find My Car</string>
+    <string name="title_activity_mapa">Map</string>
+
+    <string name="direccion1">Tu auto esta en:</string>
+    <string name="title_activity_map_location">MapLocationActivity</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="gps_network_not_enabled" />
+    <string name="open_location_settings" />
+
+
+    <string name="menu_settings">Opciones</string>
+    <string name="menu_location">Ubicacion</string>
+    <string name="title_activity_main2">Main2Activity</string>
+
+    <string name="drawer_open">Abrir</string>
+    <string name="drawer_close">Cerrar</string>
+
+    <string name="settings">Opciones</string>
+
+    <string name="clear">Borrar</string>
+
+    <string name="turnOnAutomaticMode">Iniciar Modo Automatico</string>
+    <string name="turnOffAutomaticMode">Detener Modo Automatic</string>
+    <string name="AutomaticModeOnTitle">Iniciar Modo Automatico</string>
+    <string name="AutomaticModeOffTitle">Detener Modo Automatico</string>
+    <string name="AutomaticModeOnMessage">Este modo requiere el uso del bluethooth, esta de acuerdo?</string>
+    <string name="AutomaticModeOffMessage">Desea desactivar el modo automatico?</string>
+
+    <string name="CheckWifi_title">Prender Wifi</string>
+    <string name="CheckWifi_message">Con el Wifi prendido puede mejorar la excatitud de tu ubicacion</string>
+
+    <string name="NoDestination">No se puede encontar un destino</string>
+
+
+    <string name="LocationSaved">Ubicacion guardada</string>
+    <string name="Marker">Marcador</string>
+    <string name="YourCarIsHere">Aca dejaste el auto!</string>
+    <string name="NoGPS">No funciona el GPS</string>
+    <string name="CannotBeDone">Esta accion no puede realizarse</string>
+    <string name="AcceptGPS">Permita el uso el GPS para que la aplicacion funcione correctamente</string>
+    <string name="TurnOnGPS">Encender GPS</string>
+    <string name="Accept">Aceptar</string>
+    <string name="Ignore">Ignorar</string>
+    <string name="Cancel">Cancelar</string>
+    <string name="CalculateRoute">Calculando ruta..</string>
+    <string name="CloseAppTitle">Cerrar Aplicacion</string>
+    <string name="CloseAppMessage">Estas seguro que desea salir? Puede perder la ubicacion de su auto</string>
+    <string name="Adress">Direccion</string>
+    <string name="CarDirection">Tu auto se encuentra en: </string>
+    <string name="RetrofitTitle">Retrofit </string>
+
+
+
+
+
+</resources>

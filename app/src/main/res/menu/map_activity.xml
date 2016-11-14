@@ -12,7 +12,12 @@
         android:id="@+id/action_adress"
         app:showAsAction="always"
         android:icon="@drawable/adress"
-        android:title="Adress"/>
+        android:title="@string/Adress"/>
+
+    <item
+        android:id="@+id/retrofit"
+        app:showAsAction="never"
+        android:title="@string/RetrofitTitle"/>
 
     <item android:id="@+id/action_locate"
     android:icon="@drawable/target"

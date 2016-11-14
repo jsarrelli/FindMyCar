@@ -7,7 +7,7 @@
     <string name="title_activity_maps">Map</string>
     <string name="gps_network_not_enabled" />
     <string name="open_location_settings" />
-    <string name="Cancel" />
+
 
     <string name="menu_settings">Opciones</string>
     <string name="menu_location">Ubicacion</string>
@@ -22,5 +22,36 @@
 
     <string name="turnOnAutomaticMode">Start Automatic Mode</string>
     <string name="turnOffAutomaticMode">Stop Automatic Mode</string>
+    <string name="AutomaticModeOnTitle">Turn On AutomaticMode</string>
+    <string name="AutomaticModeOffTitle">Turn Off AutomaticMode</string>
+    <string name="AutomaticModeOnMessage">This mode requires to use your bluetooth, do you agree?</string>
+    <string name="AutomaticModeOffMessage">Do you want to turn off your automatic mode?</string>
+
+    <string name="CheckWifi_title">Turn on WiFi</string>
+    <string name="CheckWifi_message">If your WiFi is enabled you will get a better accuracy on your location</string>
+
+    <string name="NoDestination">Cannot find destination</string>
+
+
+    <string name="LocationSaved">Location Saved</string>
+    <string name="Marker">Marker</string>
+    <string name="YourCarIsHere">You left your car here</string>
+    <string name="NoGPS">GPS is not working</string>
+    <string name="CannotBeDone">This action cannot be done</string>
+    <string name="AcceptGPS">Please allow the GPS so the application works properly</string>
+    <string name="TurnOnGPS">TurnOnGPS</string>
+    <string name="Accept">Accept</string>
+    <string name="Ignore">Ignore</string>
+    <string name="Cancel">Cancel</string>
+    <string name="CalculateRoute">The route is being calculated..</string>
+    <string name="CloseAppTitle">Closing App</string>
+    <string name="CloseAppMessage">Are you sure you want to close this activity? You might lose your car position</string>
+    <string name="Adress">Address:</string>
+    <string name="CarDirection">Your Car is on: </string>
+    <string name="RetrofitTitle">Retrofit </string>
+
+
+
+
 
 </resources>

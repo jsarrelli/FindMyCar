@@ -33,4 +33,13 @@ dependencies {
     compile 'hanks.xyz:htextview-library:0.1.5'
 
 
+    compile 'com.google.code.gson:gson:2.6.2'
+    compile 'com.squareup.retrofit2:retrofit:2.1.0'
+    compile 'com.squareup.retrofit2:converter-gson:2.1.0'
+
+
+
+
+
+
 }
